@@ -17,4 +17,5 @@ class ColorHelper{
   static Color textColorBlue = Colors.blue;
   static Color dropdownUnderline = Colors.blue;
   static Color addFoodButtonBackground = Colors.blue;
+
 }
