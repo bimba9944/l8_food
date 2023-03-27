@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:l8_food/helpers/color_helper.dart';
 import 'package:l8_food/helpers/icon_helper.dart';
 import 'package:l8_food/helpers/snackBarHelper.dart';
+import 'package:l8_food/models/dropdown_items_model.dart';
 import 'package:l8_food/widgets/appbar_widget.dart';
 import 'package:l8_food/widgets/dropdown_button.dart';
 
@@ -14,21 +15,25 @@ class AdminAddFoodScreen extends StatefulWidget {
 }
 
 class _AdminAddFoodScreenState extends State<AdminAddFoodScreen> {
-  static const List<String> list = <String>['Ponedeljak', 'Utorak', 'Sreda', 'Cetvrtak', 'Petak'];
-  String dropdownValue = list.first;
+
+  String dropdownValue = DropdownItemsModel.list.first;
 
   late TextEditingController _controller;
+
+  void _ifCanAddMeal(value) {
+    SnackBarHelper.buildSnackBar('Uspesno ste dodali jelo.', context);
+    _controller.text = '';
+  }
+
+  void _ifCantAddMeal(error) {
+    SnackBarHelper.buildSnackBar(error, context);
+  }
 
   void _addFood() async {
     if (_controller.text.isNotEmpty) {
       FirebaseFirestore.instance.collection('days').doc(dropdownValue).set({
         'hrana' : FieldValue.arrayUnion([_controller.text]),
-      }, SetOptions(merge: true)).then((value){
-        SnackBarHelper.buildSnackBar('Uspesno ste dodali jelo.', context);
-        _controller.text = '';
-      }).catchError((error) {
-        SnackBarHelper.buildSnackBar(error, context);
-      });
+      }, SetOptions(merge: true)).then(_ifCanAddMeal).catchError(_ifCantAddMeal);
     } else {
       SnackBarHelper.buildSnackBar('Popunite polje za novo jelo!', context);
     }
@@ -44,6 +49,12 @@ class _AdminAddFoodScreenState extends State<AdminAddFoodScreen> {
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  void _onChangeDropdown(String? value){
+    setState(() {
+      dropdownValue = value!;
+    });
   }
 
   @override
@@ -62,11 +73,8 @@ class _AdminAddFoodScreenState extends State<AdminAddFoodScreen> {
         body: Column(
           children: [
             const SizedBox(height: 60),
-            DropdownButtonWidget(list: list, dropdownValue: dropdownValue, onChanged: (String? value) {
-              setState(() {
-                dropdownValue = value!;
-              });
-            },),
+            DropdownButtonWidget(list: DropdownItemsModel.list, dropdownValue: dropdownValue, onChanged: _onChangeDropdown
+            ,),
             const SizedBox(
               height: 30,
             ),
