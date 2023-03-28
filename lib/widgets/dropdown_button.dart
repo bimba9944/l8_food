@@ -5,7 +5,7 @@ import 'package:l8_food/helpers/icon_helper.dart';
 class DropdownButtonWidget extends StatefulWidget {
   DropdownButtonWidget({Key? key, required this.list, required this.dropdownValue, this.getData, required this.onChanged}) : super(key: key);
 
-  final List<String> list;
+  List<String> list;
   late String dropdownValue;
   final Function? getData;
   final void Function(String? value) onChanged;
