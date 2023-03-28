@@ -22,11 +22,11 @@ class _AdminUpdateFoodScreenState extends State<AdminUpdateFoodScreen> {
   String dropdownValue = DropdownItemsModel.list.first;
   List<String> data = [];
 
-  void _ifCanGetAllMeals(DocumentSnapshot doc){
-      data = List.from(doc['hrana']);
-      setState(() {
-        data;
-      });
+  void _ifCanGetAllMeals(DocumentSnapshot doc) {
+    data = List.from(doc['hrana']);
+    setState(() {
+      data;
+    });
   }
 
   void _cantGetAllMeals(error) {
@@ -39,33 +39,27 @@ class _AdminUpdateFoodScreenState extends State<AdminUpdateFoodScreen> {
 
   void getAllMeals() {
     final docRef = FirebaseFirestore.instance.collection("days").doc(dropdownValue);
-    docRef.get().then(
-        _ifCanGetAllMeals
-    ).catchError(_cantGetAllMeals);
+    docRef.get().then(_ifCanGetAllMeals).catchError(_cantGetAllMeals);
   }
 
-
-
-  void _onUpdate(String controler, String oldValue) {
-    FirebaseFirestore.instance.collection('days').doc(dropdownValue).update(
-      {
-        'hrana': FieldValue.arrayRemove([oldValue])
-      },
-    ).then((value) {
-      FirebaseFirestore.instance.collection('days').doc(dropdownValue).update(
-        {
-          'hrana': FieldValue.arrayUnion([controler])
-        },
-      ).then((value) {
-        Navigator.of(context).pop();
-        setState(() {
-          getAllMeals();
-        });
-      });
+  void _onUpdate(String controler, String oldValue) async {
+    await FirebaseFirestore.instance.collection('days').doc(dropdownValue).update({
+      'hrana': FieldValue.arrayRemove([oldValue])
     });
+    await FirebaseFirestore.instance.collection('days').doc(dropdownValue).update(
+      {
+        'hrana': FieldValue.arrayUnion([controler])
+      },
+    );
+    if( mounted) {
+      Navigator.of(context).pop();
+      setState(() {
+        getAllMeals();
+      });
+    }
   }
 
-  void _ifCanDelete(value){
+  void _ifCanDelete(value) {
     Navigator.of(context).pop();
     setState(() {
       getAllMeals();
@@ -79,7 +73,7 @@ class _AdminUpdateFoodScreenState extends State<AdminUpdateFoodScreen> {
       },
     ).then(_ifCanDelete);
   }
-  
+
   Future<String?> _showDialogForUpdate(item) {
     return showDialog<String>(
       context: context,
@@ -90,7 +84,7 @@ class _AdminUpdateFoodScreenState extends State<AdminUpdateFoodScreen> {
       ),
     );
   }
-  
+
   Future<String?> _showDialogForDelete(item) {
     return showDialog<String>(
       context: context,
@@ -117,12 +111,8 @@ class _AdminUpdateFoodScreenState extends State<AdminUpdateFoodScreen> {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                IconButton(
-                    onPressed: () => _showDialogForUpdate(item),
-                    icon: Icon(IconHelper.updateMeal)),
-                IconButton(
-                    onPressed: () => _showDialogForDelete(item),
-                    icon: Icon(IconHelper.deleteMeal))
+                IconButton(onPressed: () => _showDialogForUpdate(item), icon: Icon(IconHelper.updateMeal)),
+                IconButton(onPressed: () => _showDialogForDelete(item), icon: Icon(IconHelper.deleteMeal))
               ],
             ),
           ),
@@ -138,7 +128,7 @@ class _AdminUpdateFoodScreenState extends State<AdminUpdateFoodScreen> {
     super.initState();
   }
 
-  void _onChangeDropdown(String? value){
+  void _onChangeDropdown(String? value) {
     setState(() {
       dropdownValue = value!;
     });
@@ -163,7 +153,12 @@ class _AdminUpdateFoodScreenState extends State<AdminUpdateFoodScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 60),
-              DropdownButtonWidget(list: DropdownItemsModel.list, dropdownValue: dropdownValue, getData: getAllMeals, onChanged: _onChangeDropdown,),
+              DropdownButtonWidget(
+                list: DropdownItemsModel.list,
+                dropdownValue: dropdownValue,
+                getData: getAllMeals,
+                onChanged: _onChangeDropdown,
+              ),
               ..._buildMenu(),
             ],
           ),

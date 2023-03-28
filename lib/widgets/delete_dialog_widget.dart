@@ -12,9 +12,6 @@ class DeleteDialogWidget extends StatefulWidget {
 }
 
 class _DeleteDialogWidgetState extends State<DeleteDialogWidget> {
-  void _delete(){
-    widget.onPressed(widget.oldValue);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +27,7 @@ class _DeleteDialogWidgetState extends State<DeleteDialogWidget> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             ElevatedButton(
-              onPressed: () => _delete(),
+              onPressed: () => widget.onPressed(widget.oldValue),
               style: ElevatedButton.styleFrom(primary: ColorHelper.deleteMealButtonYes),
               child: Text('Yes', style: TextStyle(color: ColorHelper.textColorWhite)),
             ),

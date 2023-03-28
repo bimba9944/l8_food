@@ -13,25 +13,25 @@ class UpdateDialogWidget extends StatefulWidget {
 }
 
 class _UpdateDialogWidgetState extends State<UpdateDialogWidget> {
-  Widget _buildSingleInputField(String hintTxt, TextEditingController controler) {
-    return TextFormField(
-      controller: controler,
-      decoration: InputDecoration(
-        border:  OutlineInputBorder(borderSide: BorderSide(color: ColorHelper.listTileBorder)),
-        hintText: hintTxt,
-      ),
-    );
-  }
-
-  void _update(){
-    widget.onPressed(widget.controller.text, widget.oldValue);
-  }
-
   @override
   void initState() {
     widget.controller.text = widget.oldValue;
     super.initState();
   }
+  Widget _buildSingleInputField(String hintTxt, TextEditingController controler) {
+    return TextFormField(
+      controller: controler,
+      decoration: InputDecoration(
+        border: OutlineInputBorder(borderSide: BorderSide(color: ColorHelper.listTileBorder)),
+        hintText: hintTxt,
+      ),
+    );
+  }
+
+  void _update() {
+    widget.onPressed(widget.controller.text, widget.oldValue);
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -41,9 +41,7 @@ class _UpdateDialogWidgetState extends State<UpdateDialogWidget> {
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildSingleInputField('Promenite jelo', widget.controller),
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
           ],
         ),
       ),

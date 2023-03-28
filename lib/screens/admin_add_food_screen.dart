@@ -15,29 +15,8 @@ class AdminAddFoodScreen extends StatefulWidget {
 }
 
 class _AdminAddFoodScreenState extends State<AdminAddFoodScreen> {
-
   String dropdownValue = DropdownItemsModel.list.first;
-
   late TextEditingController _controller;
-
-  void _ifCanAddMeal(value) {
-    SnackBarHelper.buildSnackBar('Uspesno ste dodali jelo.', context);
-    _controller.text = '';
-  }
-
-  void _ifCantAddMeal(error) {
-    SnackBarHelper.buildSnackBar(error, context);
-  }
-
-  void _addFood() async {
-    if (_controller.text.isNotEmpty) {
-      FirebaseFirestore.instance.collection('days').doc(dropdownValue).set({
-        'hrana' : FieldValue.arrayUnion([_controller.text]),
-      }, SetOptions(merge: true)).then(_ifCanAddMeal).catchError(_ifCantAddMeal);
-    } else {
-      SnackBarHelper.buildSnackBar('Popunite polje za novo jelo!', context);
-    }
-  }
 
   @override
   void initState() {
@@ -51,7 +30,32 @@ class _AdminAddFoodScreenState extends State<AdminAddFoodScreen> {
     super.dispose();
   }
 
-  void _onChangeDropdown(String? value){
+  dynamic _buildNotification(String message) {
+    SnackBarHelper.buildSnackBar(message, context);
+    _controller.text = '';
+  }
+
+  Future<void> _addMeal()async {
+    FirebaseFirestore.instance.collection('days').doc(dropdownValue).set({
+      'hrana': FieldValue.arrayUnion([_controller.text]),
+    }, SetOptions(merge: true));
+    await (_buildNotification('Uspesno ste dodali jelo'));
+  }
+
+
+  Future<void> _addFood() async {
+    try {
+      if (_controller.text.isNotEmpty) {
+        _addMeal();
+      } else {
+        _buildNotification('Popunite polje za novo jelo!');
+      }
+    } catch (error) {
+      (_buildNotification("Greska!"));
+    }
+  }
+
+  void _onChangeDropdown(String? value) {
     setState(() {
       dropdownValue = value!;
     });
@@ -73,8 +77,11 @@ class _AdminAddFoodScreenState extends State<AdminAddFoodScreen> {
         body: Column(
           children: [
             const SizedBox(height: 60),
-            DropdownButtonWidget(list: DropdownItemsModel.list, dropdownValue: dropdownValue, onChanged: _onChangeDropdown
-            ,),
+            DropdownButtonWidget(
+              list: DropdownItemsModel.list,
+              dropdownValue: dropdownValue,
+              onChanged: _onChangeDropdown,
+            ),
             const SizedBox(
               height: 30,
             ),

@@ -3,7 +3,7 @@ import 'package:l8_food/helpers/color_helper.dart';
 import 'package:l8_food/helpers/image_helper.dart';
 
 class AppBarWidget extends StatelessWidget {
-  AppBarWidget(this.iconButton, {Key? key}) : super(key: key);
+  AppBarWidget(this.iconButton);
   IconButton? iconButton;
 
   @override
