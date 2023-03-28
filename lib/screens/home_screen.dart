@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:l8_food/models/dropdown_items_model.dart';
 import 'package:l8_food/widgets/admin_drawer_widget.dart';
 import 'package:l8_food/widgets/appbar_widget.dart';
-
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -10,10 +10,30 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-enum Fruit { apple, banana }
+class MyItem {
+  MyItem({ this.isExpanded = false, required this.header, required this.body });
+  bool isExpanded;
+  final String header;
+  final String body;
+}
 
 class _HomeScreenState extends State<HomeScreen> {
-  final ValueNotifier<Fruit> _selectedItem =  ValueNotifier<Fruit>(Fruit.apple);
+  final List<MyItem> items = [];
+
+  @override
+  void initState() {
+    _buildTiles();
+    super.initState();
+  }
+
+
+  List<MyItem> _buildTiles(){
+    for(var i in DropdownItemsModel.list){
+      items.add(MyItem(header: i.toString(), body: 'body'),);
+    }
+    return items;
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -24,33 +44,25 @@ class _HomeScreenState extends State<HomeScreen> {
           child: AppBarWidget(null),
         ),
         endDrawer: const AdminDrawerWidget(),
-        body: Center(
-          child: Container(
-            child: PopupMenuButton<Fruit>(
-              child: Text('Ponedeljak'),
-              itemBuilder: (BuildContext context) {
-                return List<PopupMenuEntry<Fruit>>.generate(2, (index) {
-                  return PopupMenuItem(
-                      value: Fruit.values![index],
-                      child: AnimatedBuilder(
-                        builder: (BuildContext context, Widget? child) {
-                          return RadioListTile<Fruit>(
-                              value: Fruit.values[index],
-                              title: child,
-                              groupValue: _selectedItem.value,
-                              onChanged: (Fruit? value) {
-                                setState(() {
-                                  _selectedItem.value = value!;
-                                });
-                              });
-                        },
-                        animation: _selectedItem,
-                        child: Text(Fruit.values[index].toString()),
-                      ));
-                });
+        body: Column(
+          children: [
+            ExpansionPanelList(
+              expansionCallback: (int index, bool isExpanded) {
+                  setState(() {
+                    items[index].isExpanded = !items[index].isExpanded;
+                  });
               },
+              children: items.map((MyItem item) {
+                return ExpansionPanel(
+                  headerBuilder: (BuildContext context, bool isExpanded) {
+                    return Text(item.header);
+                  },
+                  isExpanded: item.isExpanded,
+                  body:  const Text("body"),
+                );
+              }).toList(),
             ),
-          ),
+          ],
         ),
       ),
     );

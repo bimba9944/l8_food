@@ -22,7 +22,7 @@ class _SigninScreenState extends State<SigninScreen> {
     ref.get().then((DocumentSnapshot doc) {
       data = doc['admin'] as bool;
     });
-    return data == true ? HomeScreen() : AdminScreen();
+    return data == true ? AdminScreen() : HomeScreen();
   }
 
   Widget _login(context, snapshot){
