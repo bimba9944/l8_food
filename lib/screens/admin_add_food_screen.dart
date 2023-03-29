@@ -35,13 +35,12 @@ class _AdminAddFoodScreenState extends State<AdminAddFoodScreen> {
     _controller.text = '';
   }
 
-  Future<void> _addMeal()async {
+  Future<void> _addMeal() async {
     FirebaseFirestore.instance.collection('days').doc(dropdownValue).set({
       'hrana': FieldValue.arrayUnion([_controller.text]),
     }, SetOptions(merge: true));
     await (_buildNotification('Uspesno ste dodali jelo'));
   }
-
 
   Future<void> _addFood() async {
     try {
@@ -68,7 +67,7 @@ class _AdminAddFoodScreenState extends State<AdminAddFoodScreen> {
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: AppBarWidget(
-            IconButton(
+            iconButton: IconButton(
               icon: Icon(IconHelper.appbarbackIcon),
               onPressed: () => Navigator.of(context).pop(),
             ),

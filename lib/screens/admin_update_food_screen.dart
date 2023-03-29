@@ -51,7 +51,7 @@ class _AdminUpdateFoodScreenState extends State<AdminUpdateFoodScreen> {
         'hrana': FieldValue.arrayUnion([controler])
       },
     );
-    if( mounted) {
+    if (mounted) {
       Navigator.of(context).pop();
       setState(() {
         getAllMeals();
@@ -142,7 +142,7 @@ class _AdminUpdateFoodScreenState extends State<AdminUpdateFoodScreen> {
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: AppBarWidget(
-            IconButton(
+            iconButton: IconButton(
               icon: Icon(IconHelper.appbarbackIcon),
               onPressed: () => Navigator.of(context).pop(),
             ),

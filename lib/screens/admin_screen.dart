@@ -15,7 +15,7 @@ class _AdminScreenState extends State<AdminScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        appBar: PreferredSize(preferredSize: const Size.fromHeight(60), child: AppBarWidget(null)),
+        appBar: PreferredSize(preferredSize: const Size.fromHeight(60), child: AppBarWidget()),
         endDrawer: const AdminDrawerWidget(),
       ),
     );
