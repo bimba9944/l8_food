@@ -1,5 +1,5 @@
 class DayModel {
-  List<String> food;
+  List<dynamic> food;
   int index;
 
   DayModel(this.food, this.index);

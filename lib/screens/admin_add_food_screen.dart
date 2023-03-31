@@ -8,7 +8,9 @@ import 'package:l8_food/widgets/appbar_widget.dart';
 import 'package:l8_food/widgets/dropdown_button.dart';
 
 class AdminAddFoodScreen extends StatefulWidget {
-  const AdminAddFoodScreen({Key? key}) : super(key: key);
+  const AdminAddFoodScreen(this._refresh, {Key? key}) : super(key: key);
+
+  final Future? _refresh;
 
   @override
   State<AdminAddFoodScreen> createState() => _AdminAddFoodScreenState();
@@ -46,6 +48,7 @@ class _AdminAddFoodScreenState extends State<AdminAddFoodScreen> {
     try {
       if (_controller.text.isNotEmpty) {
         _addMeal();
+        widget._refresh;
       } else {
         _buildNotification('Popunite polje za novo jelo!');
       }

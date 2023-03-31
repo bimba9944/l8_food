@@ -1,8 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:l8_food/helpers/color_helper.dart';
-import 'package:l8_food/helpers/snackBarHelper.dart';
-import 'package:l8_food/models/day_model.dart';
 import 'package:l8_food/models/dropdown_items_model.dart';
 import 'package:l8_food/widgets/admin_drawer_widget.dart';
 import 'package:l8_food/widgets/appbar_widget.dart';
@@ -16,11 +14,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<String> data = [];
 
   @override
   void initState() {
-    getAllMeals();
     super.initState();
   }
 
@@ -55,36 +51,41 @@ class _HomeScreenState extends State<HomeScreen> {
     return initialIndex;
   }
 
-  List<Widget> _buildMenu() {
+  List<Widget> _buildMenu(data){
     List<Widget> items = [];
-    for (var item in data) {
-      items.add(Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Card(
-          shape: RoundedRectangleBorder(
-              borderRadius: const BorderRadius.all(Radius.circular(15)),
-              side: BorderSide(color: ColorHelper.listTileBorder)),
-          elevation: 10,
-          child: ListTile(
-            contentPadding: const EdgeInsets.all(6),
-            title: Text(item.toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ),
-      ));
+    for (var item in data['hrana']) {
+          items.add(Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                  borderRadius: const BorderRadius.all(Radius.circular(15)),
+                  side: BorderSide(color: ColorHelper.listTileBorder)),
+              elevation: 10,
+              child: ListTile(
+                contentPadding: const EdgeInsets.all(6),
+                title: Text(item.toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ));
     }
     return items;
   }
 
-
-   Future<dynamic> getAllMeals() async {
-    final docRef =  FirebaseFirestore.instance.collection("days");
-    QuerySnapshot querySnapshot = await docRef.get();
-    var allData = querySnapshot.docs.map((doc) => doc.data()).toList();
-    print(allData);
-    for(var data in allData){
-      print(data!['hrana']);
+  Widget _buildTabBarView(BuildContext context,AsyncSnapshot<QuerySnapshot> snapshot){
+    if (snapshot.hasError) {
+      return Text('Something went wrong');
     }
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return Text("Loading");
+    }
+    return TabBarView(
+      children: snapshot.data!.docs.map((DocumentSnapshot document) {
+        Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
+        return ListView(children: [..._buildMenu(data)],);
+      }).toList(),
+    );
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -98,24 +99,9 @@ class _HomeScreenState extends State<HomeScreen> {
             child: _buildAppbar(),
           ),
           endDrawer: const AdminDrawerWidget(),
-          body: TabBarView(
-            children: [
-              Column(
-                children: [..._buildMenu()],
-              ),
-              Column(
-                children: [..._buildMenu()],
-              ),
-              Column(
-                children: [..._buildMenu()],
-              ),
-              Column(
-                children: [..._buildMenu()],
-              ),
-              Column(
-                children: [..._buildMenu()],
-              ),
-            ],
+          body: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance.collection("days").orderBy('index').snapshots(),
+            builder: _buildTabBarView,
           ),
         ),
       ),

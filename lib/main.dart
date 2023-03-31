@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:l8_food/helpers/google_signin.dart';
 import 'package:l8_food/screens/admin_add_food_screen.dart';
 import 'package:l8_food/screens/admin_update_food_screen.dart';
+import 'package:l8_food/screens/home_screen.dart';
 import 'package:l8_food/screens/signin_screen.dart';
 import 'package:provider/provider.dart';
 
@@ -26,9 +27,9 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const SigninScreen(),
-        '/AddFoodScreen': (context) => const AdminAddFoodScreen(),
+        '/AddFoodScreen': (context) =>   const AdminAddFoodScreen(null),
         '/UpdateFoodScreen': (context) => const AdminUpdateFoodScreen(),
-
+        '/HomeScreen':(context) => const HomeScreen(),
       },
     ),
   );
