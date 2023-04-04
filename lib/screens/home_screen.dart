@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:l8_food/helpers/color_helper.dart';
 import 'package:l8_food/models/dropdown_items_model.dart';
@@ -13,10 +14,16 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin{
+  String _defVal = '/';
+  final user = FirebaseAuth.instance.currentUser!;
+  final dayDate = DateFormat('EEEE,d.MMMM').format(DateTime.now());
+  late TabController _controller;
 
   @override
   void initState() {
+    _controller = TabController(vsync: this, length: 5);
+    _controller.addListener(() { print('nesto');});
     super.initState();
   }
 
@@ -37,41 +44,67 @@ class _HomeScreenState extends State<HomeScreen> {
 
   int _setInitialIndex() {
     int initialIndex = 0;
-    if (DateFormat('EEEE').format(DateTime.now()) == 'Wednesday') {
-      initialIndex = 2;
-    } else if (DateFormat('EEEE').format(DateTime.now()) == 'Monday') {
+    final now = DateFormat('EEEE,hh:mm').format(DateTime.now());
+    final monday = DateFormat('EEEE,hh:mm').parse('Monday,08:00');
+    final tuesday = DateFormat('EEEE,hh:mm').parse('Tuesday,08:00');
+    final wednesday = DateFormat('EEEE,hh:mm').parse('Wednesday,08:00');
+    final thursday = DateFormat('EEEE,hh:mm').parse('Thursday,08:00');
+    final friday = DateFormat('EEEE,hh:mm').parse('Friday,08:00');
+    final saturday = DateFormat('EEEE,hh:mm').parse('Saturday,08:00');
+    final sunday = DateFormat('EEEE,hh:mm').parse('Sunday,08:00');
+    final nowInString = DateFormat('EEEE,hh:mm').parse(now);
+    print(nowInString);
+    if (nowInString.compareTo(monday) == 1) {
       initialIndex = 0;
-    } else if (DateFormat('EEEE').format(DateTime.now()) == 'Tuesday') {
+    } else if (nowInString.compareTo(tuesday) == 1) {
       initialIndex = 1;
-    } else if (DateFormat('EEEE').format(DateTime.now()) == 'Thursday') {
+    } else if (nowInString.compareTo(wednesday) == 1) {
+      initialIndex = 2;
+    } else if (nowInString.compareTo(thursday) == 1) {
       initialIndex = 3;
-    } else if (DateFormat('EEEE').format(DateTime.now()) == 'Friday') {
+    } else if (nowInString.compareTo(friday) == 1) {
       initialIndex = 4;
+    } else if (nowInString.compareTo(saturday) == 1) {
+      initialIndex = 0;
+    } else if (nowInString.compareTo(sunday) == 1) {
+      initialIndex = 0;
     }
     return initialIndex;
   }
 
-  List<Widget> _buildMenu(data){
+  List<Widget> _buildMenu(data) {
     List<Widget> items = [];
     for (var item in data['hrana']) {
-          items.add(Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Card(
-              shape: RoundedRectangleBorder(
-                  borderRadius: const BorderRadius.all(Radius.circular(15)),
-                  side: BorderSide(color: ColorHelper.listTileBorder)),
-              elevation: 10,
-              child: ListTile(
-                contentPadding: const EdgeInsets.all(6),
-                title: Text(item.toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
-              ),
+      print(data['hrana']);
+      items.add(Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(children: [
+          ListTile(
+            title: Text(item.toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
+            leading: Radio<String>(
+              value: item,
+              groupValue: _defVal,
+              toggleable: true,
+              onChanged: _setInitialIndex() + 1 >= data['index']
+                  ? null
+                  : (value) {
+                      FirebaseFirestore.instance
+                          .collection('orders')
+                          .add({'defVal': value.toString(), 'userId': user.uid, 'date': dayDate});
+                      _defVal = value.toString();
+                      setState(() {
+                        _defVal = value.toString();
+                      });
+                    },
             ),
-          ));
+          ),
+        ]),
+      ));
     }
     return items;
   }
 
-  Widget _buildTabBarView(BuildContext context,AsyncSnapshot<QuerySnapshot> snapshot){
+  Widget _buildTabBarView(BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
     if (snapshot.hasError) {
       return Text('Something went wrong');
     }
@@ -81,11 +114,19 @@ class _HomeScreenState extends State<HomeScreen> {
     return TabBarView(
       children: snapshot.data!.docs.map((DocumentSnapshot document) {
         Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
-        return ListView(children: [..._buildMenu(data)],);
+        return Card(
+            margin: const EdgeInsets.all(15),
+            shape: RoundedRectangleBorder(
+                borderRadius: const BorderRadius.all(Radius.circular(15)),
+                side: BorderSide(color: ColorHelper.listTileBorder)),
+            elevation: 10,
+            child: ListView(
+              children: [..._buildMenu(data)],
+            ));
       }).toList(),
+    //controller: _controller,
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
