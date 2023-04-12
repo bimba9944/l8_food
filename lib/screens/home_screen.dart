@@ -25,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   bool enableButton = true;
   bool expired = true;
   late var dayOfOrder;
+  late String defVal;
 
   List<DateTime> generateDate(int count) {
     int weekends = 0;
@@ -56,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   void _isExpired() {
-    if (_controller.index <= DateTime.now().weekday-1) {
+    if (_controller.index <= DateTime.now().weekday - 1) {
       expired = true;
     } else {
       expired = false;
@@ -90,9 +91,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   Color _isChecked(index) {
     if (indexOfMeal == null) {
-      return const Color.fromRGBO(255, 255, 204, 0.7);
+      return Colors.white;
     } else if (indexOfMeal == index) {
-      return const Color.fromRGBO(255, 204, 153, 1);
+      return Colors.lightBlueAccent;
     }
     return Colors.white;
   }
@@ -104,16 +105,19 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       });
     } else if (indexOfMeal == null) {
       setState(() {
+        defVal = value;
         indexOfMeal = index!.ceil();
         isSelected = true;
       });
     } else if (isSelected == false && enabled == true) {
       setState(() {
+        defVal = value;
         indexOfMeal = index;
         isSelected = true;
       });
     } else if (isSelected == true && enabled == true) {
       setState(() {
+        defVal = value;
         isSelected = false;
         indexOfMeal = index;
       });
@@ -123,7 +127,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   List<Widget> _buildTabBarDays() {
     List<Widget> days1 = [];
     for (var day in generateDate(5)) {
-      days1.add(Tab(text: '${day.day}.${day.month}.${day.year}'));
+      days1.add(
+        Tab(
+          child: Column(
+            children: [
+              Text(DateFormat('EEEE').format(day)),
+              Text('${day.day}.${day.month}.${day.year}'),
+            ],
+          ),
+        ),
+      );
     }
     return days1;
   }
@@ -162,8 +175,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   void _submitChoice() {
     if (enabled && enableButton) {
       FirebaseFirestore.instance.collection('orders').add({
+        'defVal': defVal,
         'userId': user.uid,
-        'date': dayDate,
+        'date': generateDate(5)[_controller.index],
         'indexOfDay': _controller.index,
         'index': indexOfMeal,
       });
@@ -183,6 +197,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         .where('userId', isEqualTo: user.uid)
         .where('index', isEqualTo: indexOfMeal)
         .where('indexOfDay', isEqualTo: indexOfDay)
+        .where('defVal', isEqualTo: defVal)
         .get();
     for (var doc in snapshot.docs) {
       await doc.reference.delete();
@@ -206,7 +221,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
     if (!enableButton && !enabled) {
       setState(() {});
-      return ElevatedButton(onPressed: () => _editChoice(), child: const Text('Edit'));
+      return FloatingActionButton(
+          backgroundColor: Colors.blue, onPressed: () => _editChoice(), child: const Icon(Icons.edit));
     }
     return Text('Nesto');
   }
