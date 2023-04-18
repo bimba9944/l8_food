@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:l8_food/helpers/google_signin.dart';
 import 'package:l8_food/screens/admin_add_food_screen.dart';
 import 'package:l8_food/screens/admin_update_food_screen.dart';
+import 'package:l8_food/screens/history_of_orders_screen.dart';
 import 'package:l8_food/screens/home_screen.dart';
 import 'package:l8_food/screens/signin_screen.dart';
 import 'package:provider/provider.dart';
@@ -30,6 +31,7 @@ class MyApp extends StatelessWidget {
         '/AddFoodScreen': (context) =>   const AdminAddFoodScreen(null),
         '/UpdateFoodScreen': (context) => const AdminUpdateFoodScreen(),
         '/HomeScreen':(context) => const HomeScreen(),
+        '/HistoryOfOrdersScreen':(context) => const HistoryOfOrdersScreen()
       },
     ),
   );

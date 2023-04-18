@@ -6,6 +6,7 @@ import 'package:l8_food/models/dropdown_items_model.dart';
 import 'package:l8_food/widgets/admin_drawer_widget.dart';
 import 'package:l8_food/widgets/appbar_widget.dart';
 import 'package:intl/intl.dart';
+import 'package:l8_food/widgets/home_page_view_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -21,11 +22,21 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   late bool enabled = true;
   late var indexOfDay = _controller.index;
   int? indexOfMeal;
-  late bool isSelected = true;
   bool enableButton = true;
   bool expired = true;
   late var dayOfOrder;
-  late String defVal;
+
+  @override
+  void initState() {
+    _controller = TabController(vsync: this, length: 5);
+    _controller.index = _setInitialIndex();
+    _getMealsFromDb();
+    _controller.addListener(() {
+      _isExpired();
+      _getMealsFromDb();
+    });
+    super.initState();
+  }
 
   List<DateTime> generateDate(int count) {
     int weekends = 0;
@@ -44,18 +55,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  @override
-  void initState() {
-    _controller = TabController(vsync: this, length: 5);
-    _controller.index = _setInitialIndex();
-    _getMealsFromDb();
-    _controller.addListener(() {
-      _isExpired();
-      _getMealsFromDb();
-    });
-    super.initState();
-  }
-
   void _isExpired() {
     if (_controller.index <= DateTime.now().weekday - 1) {
       expired = true;
@@ -64,64 +63,28 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
   }
 
-  void _getMealsFromDb() {
-    FirebaseFirestore.instance
-        .collection('orders')
-        .where('userId', isEqualTo: user.uid)
-        .where('indexOfDay', isEqualTo: _controller.index)
-        .get()
-        .then((value) {
+  void _getMealsFromDb() async {
+    try {
+      QuerySnapshot<Map<String, dynamic>> value = await FirebaseFirestore.instance
+          .collection('orders')
+          .where('userId', isEqualTo: user.uid)
+          .where('indexOfDay', isEqualTo: _controller.index).where('date',isEqualTo: _convertDateTime()[_controller.index])
+          .get();
       indexOfMeal = value.docs.first.data().values.elementAt(2);
       indexOfDay = value.docs.first.data().values.elementAt(1);
       dayOfOrder = value.docs.first.data().values.elementAt(0);
-      if (indexOfMeal != null) {
-        enabled = false;
-        enableButton = false;
-      }
-    }).catchError((error) {
+      print(generateDate(5)[_controller.index]);
+    } catch (_) {
       enabled = true;
       enableButton = true;
       indexOfMeal = null;
-    });
-
-    setState(() {
-      _setInitialIndex();
-    });
-  }
-
-  Color _isChecked(index) {
-    if (indexOfMeal == null) {
-      return Colors.white;
-    } else if (indexOfMeal == index) {
-      return Colors.lightBlueAccent;
     }
-    return Colors.white;
-  }
-
-  Future<void> _onTap(data, int? index, value) async {
-    if (_setInitialIndex() + 1 >= data) {
-      setState(() {
-        enabled = false;
-      });
-    } else if (indexOfMeal == null) {
-      setState(() {
-        defVal = value;
-        indexOfMeal = index!.ceil();
-        isSelected = true;
-      });
-    } else if (isSelected == false && enabled == true) {
-      setState(() {
-        defVal = value;
-        indexOfMeal = index;
-        isSelected = true;
-      });
-    } else if (isSelected == true && enabled == true) {
-      setState(() {
-        defVal = value;
-        isSelected = false;
-        indexOfMeal = index;
-      });
+    if (indexOfMeal != null) {
+      enabled = false;
+      enableButton = false;
     }
+    _setInitialIndex();
+    setState(() {});
   }
 
   List<Widget> _buildTabBarDays() {
@@ -139,6 +102,31 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       );
     }
     return days1;
+  }
+
+  List<String> _convertDateTime() {
+    List<String> dayss = [];
+    for (var day in generateDate(5)) {
+      dayss.add( '${DateFormat('EEEE').format(day)}'+','+'${day.day}.${day.month}.${day.year}'
+      );
+    }
+    return dayss;
+  }
+
+  void _setValueForEnable(bool value) {
+    enabled = value;
+    enableButton = value;
+    setState(() {});
+  }
+
+  void _setEnabled(bool value) {
+    enabled = value;
+    setState(() {});
+  }
+
+  void _setIndexOfMeal(int i) {
+    indexOfMeal = i;
+    setState(() {});
   }
 
   AppBarWidget _buildAppbar() {
@@ -164,98 +152,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return initialIndex;
   }
 
-  List<String> _listOfMeals(data) {
-    List<String> meals = [];
-    for (var item in data['hrana']) {
-      meals.add(item);
-    }
-    return meals;
-  }
-
-  void _submitChoice() {
-    if (enabled && enableButton) {
-      FirebaseFirestore.instance.collection('orders').add({
-        'defVal': defVal,
-        'userId': user.uid,
-        'date': generateDate(5)[_controller.index],
-        'indexOfDay': _controller.index,
-        'index': indexOfMeal,
-      });
-      enableButton = false;
-      enabled = false;
-    } else {
-      return deactivate();
-    }
-    setState(() {});
-  }
-
-  Future<void> _editChoice() async {
-    enableButton = true;
-    enabled = true;
-    var snapshot = await FirebaseFirestore.instance
-        .collection('orders')
-        .where('userId', isEqualTo: user.uid)
-        .where('index', isEqualTo: indexOfMeal)
-        .where('indexOfDay', isEqualTo: indexOfDay)
-        .where('defVal', isEqualTo: defVal)
-        .get();
-    for (var doc in snapshot.docs) {
-      await doc.reference.delete();
-    }
-    setState(() {});
-  }
-
-  Text _buildText() {
-    setState(() {});
-    return Text('Proslo je vreme za narucivanje');
-  }
-
-  Widget _buildButtons() {
-    if (expired) {
-      setState(() {});
-      return _buildText();
-    }
-    if (enableButton && enabled) {
-      setState(() {});
-      return ElevatedButton(child: const Text('Submit'), onPressed: () => _submitChoice());
-    }
-    if (!enableButton && !enabled) {
-      setState(() {});
-      return FloatingActionButton(
-          backgroundColor: Colors.blue, onPressed: () => _editChoice(), child: const Icon(Icons.edit));
-    }
-    return Text('Nesto');
-  }
-
-  Widget _buildTabBarView(BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-    if (snapshot.hasError) {
-      return Text('Something went wrong');
-    }
-    if (snapshot.connectionState == ConnectionState.waiting) {
-      return CircularProgressIndicator();
-    }
-    return TabBarView(
-      physics: const NeverScrollableScrollPhysics(),
-      controller: _controller,
-      children: snapshot.data!.docs.map((DocumentSnapshot document) {
-        Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
-        return ListView.builder(
-          itemCount: _listOfMeals(data).length,
-          itemBuilder: (_, int index) {
-            return ListTile(
-              tileColor: _isChecked(index),
-              title: GestureDetector(
-                  onTap: () {
-                    _onTap(data['index'], index, _listOfMeals(data)[index]);
-                  },
-                  child: Text(_listOfMeals(data)[index])),
-            );
-          },
-        );
-      }).toList(),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -268,18 +164,19 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             child: _buildAppbar(),
           ),
           endDrawer: const AdminDrawerWidget(),
-          body: Column(
-            children: [
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.7,
-                width: MediaQuery.of(context).size.width * 1,
-                child: StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance.collection("days").orderBy('index').snapshots(),
-                  builder: _buildTabBarView,
-                ),
-              ),
-              _buildButtons(),
-            ],
+          body: HomePageSingleTabBarView(
+            setInitialIndex: _setInitialIndex,
+            controller: _controller,
+            enableButton: enableButton,
+            enabled: enabled,
+            expired: expired,
+            indexOfMeal: indexOfMeal,
+            count: 5,
+            generateDate: _convertDateTime,
+            indexOfDay: indexOfDay,
+            setValueForEnable: _setValueForEnable,
+            setEnabled: _setEnabled,
+            setIndexOfMeal: _setIndexOfMeal,
           ),
         ),
       ),
