@@ -1,5 +1,3 @@
-
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -87,7 +85,7 @@ class _AdminDrawerWidgetState extends State<AdminDrawerWidget> {
       ),
       ListTile(
         leading: Icon(IconHelper.listAllOrders),
-        onTap: () {},
+        onTap: () => _navigateToNewPage('/HistoryOfAllOrdersScreen'),
         title: const Text('Predgled svih porudzbina'),
       ),
       const Divider(
@@ -105,14 +103,6 @@ class _AdminDrawerWidgetState extends State<AdminDrawerWidget> {
         leading: Icon(IconHelper.updateMeal),
         onTap: () => _navigateToNewPage('/UpdateFoodScreen'),
         title: const Text('Izmena jelovnika'),
-      ),
-      const Divider(
-        thickness: 1,
-      ),
-      ListTile(
-        leading: Icon(IconHelper.exportInPdf),
-        onTap: () {},
-        title: const Text('Izvezi sve u PDF'),
       ),
       const Divider(
         thickness: 1,

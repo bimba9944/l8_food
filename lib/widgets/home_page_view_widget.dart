@@ -73,6 +73,7 @@ class _HomePageSingleTabBarViewState extends State<HomePageSingleTabBarView> {
         'date': widget.generateDate()[widget.controller.index],
         'indexOfDay': widget.controller.index,
         'index': widget.indexOfMeal,
+        'email': user.email
       });
       widget.setValueForEnable(false);
     } else {
