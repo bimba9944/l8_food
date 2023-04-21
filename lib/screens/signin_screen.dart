@@ -1,18 +1,21 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localization/flutter_localization.dart';
+import 'package:l8_food/helpers/language_helper.dart';
 import 'package:l8_food/screens/admin_screen.dart';
 import 'package:l8_food/screens/home_screen.dart';
 import 'package:l8_food/widgets/signin_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class SigninScreen extends StatefulWidget {
-  const SigninScreen({Key? key}) : super(key: key);
+
+class SignInScreen extends StatefulWidget {
+  const SignInScreen({Key? key}) : super(key: key);
 
   @override
-  State<SigninScreen> createState() => _SigninScreenState();
+  State<SignInScreen> createState() => _SignInScreenState();
 }
 
-class _SigninScreenState extends State<SigninScreen> {
+class _SignInScreenState extends State<SignInScreen> {
   bool? data;
 
   Widget _checkIsUserAdmin(){
@@ -20,7 +23,7 @@ class _SigninScreenState extends State<SigninScreen> {
     final user = FirebaseAuth.instance.currentUser;
     final ref = db.collection('users').doc(user?.uid);
     ref.get().then((DocumentSnapshot doc) {
-      data = doc['admin'] as bool;
+      data = doc['admin'] as bool; //TODO then skloni i ovu metodu u poserban servis
     });
     return data == true ? AdminScreen() : HomeScreen();
   }
@@ -33,11 +36,11 @@ class _SigninScreenState extends State<SigninScreen> {
     } else if (snapshot.hasData) {
       return _checkIsUserAdmin();
     } else if (snapshot.hasError) {
-      return const Center(
-        child: Text('Something went wrong!'),
+      return  Center(
+        child: Text(AppLocale.errorMessage.getString(context)),
       );
     } else {
-      return const SigninWidget();
+      return const SignInWidget();
     }
   }
 

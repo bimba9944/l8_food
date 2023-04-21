@@ -1,23 +1,26 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localization/flutter_localization.dart';
 import 'package:l8_food/helpers/color_helper.dart';
 import 'package:l8_food/helpers/icon_helper.dart';
+import 'package:l8_food/helpers/language_helper.dart';
 import 'package:l8_food/helpers/snackBarHelper.dart';
 import 'package:l8_food/models/dropdown_items_model.dart';
 import 'package:l8_food/widgets/appbar_widget.dart';
 import 'package:l8_food/widgets/dropdown_button.dart';
 
 class AdminAddFoodScreen extends StatefulWidget {
-  const AdminAddFoodScreen(this._refresh, {Key? key}) : super(key: key);
+  const AdminAddFoodScreen(this.refreshScreen, {Key? key}) : super(key: key);
 
-  final Future? _refresh;
+  final Future? refreshScreen;
 
   @override
   State<AdminAddFoodScreen> createState() => _AdminAddFoodScreenState();
 }
 
 class _AdminAddFoodScreenState extends State<AdminAddFoodScreen> {
-  String dropdownValue = DropdownItemsModel.list.first;
+  String _dropdownValue =
+      DropdownItemsModel.list.first;
   late TextEditingController _controller;
 
   @override
@@ -38,28 +41,32 @@ class _AdminAddFoodScreenState extends State<AdminAddFoodScreen> {
   }
 
   Future<void> _addMeal() async {
-    FirebaseFirestore.instance.collection('days').doc(dropdownValue).set({
+    //TODO ovo isto u poseban service, ista prica kao za google_signing.dart komentar
+    FirebaseFirestore.instance.collection('days').doc(_dropdownValue).set({
       'hrana': FieldValue.arrayUnion([_controller.text]),
     }, SetOptions(merge: true));
-    await (_buildNotification('Uspesno ste dodali jelo'));
+    await (_buildNotification(
+        AppLocale.successfullyUpdatedMeal.getString(context)));
   }
 
   Future<void> _addFood() async {
     try {
       if (_controller.text.isNotEmpty) {
         _addMeal();
-        widget._refresh;
+        widget
+            .refreshScreen;
       } else {
-        _buildNotification('Popunite polje za novo jelo!');
+        _buildNotification(AppLocale.messageIfAddFoodFailed.getString(context));
       }
     } catch (error) {
-      (_buildNotification("Greska!"));
+      (_buildNotification(AppLocale.errorMessage.getString(context)));
     }
   }
 
   void _onChangeDropdown(String? value) {
     setState(() {
-      dropdownValue = value!;
+      _dropdownValue =
+          value!;
     });
   }
 
@@ -71,7 +78,7 @@ class _AdminAddFoodScreenState extends State<AdminAddFoodScreen> {
           preferredSize: const Size.fromHeight(60),
           child: AppBarWidget(
             iconButton: IconButton(
-              icon: Icon(IconHelper.appbarbackIcon),
+              icon: Icon(IconHelper.appBarBackIcon),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ),
@@ -81,24 +88,22 @@ class _AdminAddFoodScreenState extends State<AdminAddFoodScreen> {
             const SizedBox(height: 60),
             DropdownButtonWidget(
               list: DropdownItemsModel.list,
-              dropdownValue: dropdownValue,
+              dropdownValue: _dropdownValue,
               onChanged: _onChangeDropdown,
             ),
-            const SizedBox(
-              height: 30,
-            ),
+            const SizedBox(height: 30),
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 20),
               child: TextField(
                 controller: _controller,
-                decoration: const InputDecoration(border: OutlineInputBorder(), labelText: 'Dodajte novo jelo'),
+                decoration:  InputDecoration(border: OutlineInputBorder(), labelText: AppLocale.updateMealTextField.getString(context)),
               ),
             ),
             ElevatedButton(
               onPressed: () => _addFood(),
               style: ElevatedButton.styleFrom(primary: ColorHelper.addFoodButtonBackground),
               child: Text(
-                'Submit',
+                AppLocale.submitButton.getString(context),
                 style: TextStyle(color: ColorHelper.textColorWhite),
               ),
             )

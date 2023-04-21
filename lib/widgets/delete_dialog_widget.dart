@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localization/flutter_localization.dart';
 import 'package:l8_food/helpers/color_helper.dart';
+import 'package:l8_food/helpers/language_helper.dart';
 
 class DeleteDialogWidget extends StatefulWidget {
   final Function(String oldValue) onPressed;
@@ -18,8 +20,8 @@ class _DeleteDialogWidgetState extends State<DeleteDialogWidget> {
     return AlertDialog(
       content: Column(
         mainAxisSize: MainAxisSize.min,
-        children: const [
-          Center(child: Text('Da li sigurno zelite da izbrisete ovo jelo?')),
+        children: [
+          Center(child: Text(AppLocale.deleteMealQuestion.getString(context))),
         ],
       ),
       actions: [
@@ -29,12 +31,12 @@ class _DeleteDialogWidgetState extends State<DeleteDialogWidget> {
             ElevatedButton(
               onPressed: () => widget.onPressed(widget.oldValue),
               style: ElevatedButton.styleFrom(primary: ColorHelper.deleteMealButtonYes),
-              child: Text('Yes', style: TextStyle(color: ColorHelper.textColorWhite)),
+              child: Text(AppLocale.yes.getString(context), style: TextStyle(color: ColorHelper.textColorWhite)),
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
               style: ElevatedButton.styleFrom(primary: ColorHelper.deleteMealButtonNo),
-              child: Text('No', style: TextStyle(color: ColorHelper.textColorWhite)),
+              child: Text(AppLocale.no.getString(context), style: TextStyle(color: ColorHelper.textColorWhite)),
             ),
           ],
         )

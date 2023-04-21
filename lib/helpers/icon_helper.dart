@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class IconHelper{
-  static IconData appbarbackIcon = Icons.arrow_back;
+  static IconData appBarBackIcon = Icons.arrow_back;
   static IconData dropdownExpand = Icons.expand_more;
   static IconData updateMeal = Icons.mode;
   static IconData deleteMeal = Icons.delete;

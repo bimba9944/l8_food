@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:l8_food/helpers/color_helper.dart';
 import 'package:l8_food/models/dropdown_items_model.dart';
 import 'package:l8_food/widgets/admin_drawer_widget.dart';
 import 'package:l8_food/widgets/appbar_widget.dart';
@@ -16,15 +15,16 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
-  final user = FirebaseAuth.instance.currentUser!;
-  final dayDate = DateTime.now();
+  final _user = FirebaseAuth.instance.currentUser!;
   late TabController _controller;
-  late bool enabled = true;
-  late var indexOfDay = _controller.index;
-  int? indexOfMeal;
-  bool enableButton = true;
-  bool expired = true;
+  late bool _enabled = true;
+  late var _indexOfDay = _controller.index;
+  int? _indexOfMeal;
+  bool _enableButton = true;
+  bool _expired = true;
   late var dayOfOrder;
+
+
 
   @override
   void initState() {
@@ -37,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     });
     super.initState();
   }
+
 
   List<DateTime> generateDate(int count) {
     int weekends = 0;
@@ -57,31 +58,31 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   void _isExpired() {
     if (_controller.index <= DateTime.now().weekday - 1) {
-      expired = true;
+      _expired = true;
     } else {
-      expired = false;
+      _expired = false;
     }
   }
 
   void _getMealsFromDb() async {
     try {
+      //TODO U poseban servis
       QuerySnapshot<Map<String, dynamic>> value = await FirebaseFirestore.instance
           .collection('orders')
-          .where('userId', isEqualTo: user.uid)
+          .where('userId', isEqualTo: _user.uid)
           .where('indexOfDay', isEqualTo: _controller.index).where('date',isEqualTo: _convertDateTime()[_controller.index])
           .get();
-      indexOfMeal = value.docs.first.data().values.elementAt(2);
-      indexOfDay = value.docs.first.data().values.elementAt(1);
+      _indexOfMeal = value.docs.first.data().values.elementAt(2);
+      _indexOfDay = value.docs.first.data().values.elementAt(1);
       dayOfOrder = value.docs.first.data().values.elementAt(0);
-      print(generateDate(5)[_controller.index]);
     } catch (_) {
-      enabled = true;
-      enableButton = true;
-      indexOfMeal = null;
+      _enabled = true;
+      _enableButton = true;
+      _indexOfMeal = null;
     }
-    if (indexOfMeal != null) {
-      enabled = false;
-      enableButton = false;
+    if (_indexOfMeal != null) {
+      _enabled = false;
+      _enableButton = false;
     }
     _setInitialIndex();
     setState(() {});
@@ -104,6 +105,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return days1;
   }
 
+  //TODO ovo EEEE imas na dosta mesta i video sam jos jednom u drugom fajlu gore, Vidi posto radis sa datumima na par mesta da napravis DateHelper i tu da imas metode koje ce da obraduju datume
+
   List<String> _convertDateTime() {
     List<String> dayss = [];
     for (var day in generateDate(5)) {
@@ -114,18 +117,18 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   void _setValueForEnable(bool value) {
-    enabled = value;
-    enableButton = value;
+    _enabled = value;
+    _enableButton = value;
     setState(() {});
   }
 
   void _setEnabled(bool value) {
-    enabled = value;
+    _enabled = value;
     setState(() {});
   }
 
   void _setIndexOfMeal(int i) {
-    indexOfMeal = i;
+    _indexOfMeal = i;
     setState(() {});
   }
 
@@ -167,13 +170,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           body: HomePageSingleTabBarView(
             setInitialIndex: _setInitialIndex,
             controller: _controller,
-            enableButton: enableButton,
-            enabled: enabled,
-            expired: expired,
-            indexOfMeal: indexOfMeal,
+            enableButton: _enableButton,
+            enabled: _enabled,
+            expired: _expired,
+            indexOfMeal: _indexOfMeal,
             count: 5,
             generateDate: _convertDateTime,
-            indexOfDay: indexOfDay,
+            indexOfDay: _indexOfDay,
             setValueForEnable: _setValueForEnable,
             setEnabled: _setEnabled,
             setIndexOfMeal: _setIndexOfMeal,

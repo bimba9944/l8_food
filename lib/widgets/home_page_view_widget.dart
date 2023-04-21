@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localization/flutter_localization.dart';
+import 'package:l8_food/helpers/language_helper.dart';
 
 class HomePageSingleTabBarView extends StatefulWidget {
   const HomePageSingleTabBarView({
@@ -37,13 +39,13 @@ class HomePageSingleTabBarView extends StatefulWidget {
 }
 
 class _HomePageSingleTabBarViewState extends State<HomePageSingleTabBarView> {
-  String? defVal;
-  final user = FirebaseAuth.instance.currentUser!;
-  late bool isSelected = true;
+  String? _de0fVal;
+  final _user = FirebaseAuth.instance.currentUser!;
+  late bool _isSelected = true;
 
   List<String> _listOfMeals(data) {
     List<String> meals = [];
-    for (var item in data['hrana']) {
+    for (var item in data['hrana']) { //TODO izdvoj ovo hrana nekako, da ne stoji random u kodu
       meals.add(item);
     }
     return meals;
@@ -52,12 +54,13 @@ class _HomePageSingleTabBarViewState extends State<HomePageSingleTabBarView> {
 
   Future<void> _editChoice() async {
     widget.setValueForEnable(true);
+    //TODO prebaci u servis
     var snapshot = await FirebaseFirestore.instance
         .collection('orders')
-        .where('userId', isEqualTo: user.uid)
+        .where('userId', isEqualTo: _user.uid)
         .where('index', isEqualTo: widget.indexOfMeal)
         .where('indexOfDay', isEqualTo: widget.indexOfDay)
-        .where('defVal', isEqualTo: defVal)
+        .where('defVal', isEqualTo: _de0fVal)
         .get();
     for (var doc in snapshot.docs) {
       await doc.reference.delete();
@@ -67,13 +70,14 @@ class _HomePageSingleTabBarViewState extends State<HomePageSingleTabBarView> {
 
   void _submitChoice() {
     if (widget.enabled && widget.enableButton) {
+      //TODO prebaci u servis
       FirebaseFirestore.instance.collection('orders').add({
-        'defVal': defVal,
-        'userId': user.uid,
+        'defVal': _de0fVal,
+        'userId': _user.uid,
         'date': widget.generateDate()[widget.controller.index],
         'indexOfDay': widget.controller.index,
         'index': widget.indexOfMeal,
-        'email': user.email
+        'email': _user.email
       });
       widget.setValueForEnable(false);
     } else {
@@ -98,28 +102,32 @@ class _HomePageSingleTabBarViewState extends State<HomePageSingleTabBarView> {
       });
     } else if (widget.indexOfMeal == null) {
       setState(() {
-        defVal = value;
+        _de0fVal = value;
         widget.setIndexOfMeal(index);
-        isSelected = true;
+        _isSelected = true;
       });
-    } else if (isSelected == false && widget.enabled == true) {
+    } else if (_isSelected == false && widget.enabled == true) {
       setState(() {
-        defVal = value;
+        _de0fVal = value;
         widget.setIndexOfMeal(index);
-        isSelected = true;
+        _isSelected = true;
       });
-    } else if (isSelected == true && widget.enabled == true) {
+    } else if (_isSelected == true && widget.enabled == true) {
       setState(() {
-        defVal = value;
-        isSelected = false;
+        _de0fVal = value;
+        _isSelected = false;
         widget.setIndexOfMeal(index);
       });
     }
   }
 
+  void _onClick(data,index){
+    _onTap(data['index'], index, _listOfMeals(data)[index]);
+  }
+
   Widget _buildTabBarView(BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
     if (snapshot.hasError) {
-      return Text('Something went wrong');
+      return Text(AppLocale.errorMessage.getString(context));
     }
     if (snapshot.connectionState == ConnectionState.waiting) {
       return CircularProgressIndicator();
@@ -135,9 +143,7 @@ class _HomePageSingleTabBarViewState extends State<HomePageSingleTabBarView> {
             return ListTile(
               tileColor: _isChecked(index),
               title: GestureDetector(
-                  onTap: () {
-                    _onTap(data['index'], index, _listOfMeals(data)[index]);
-                  },
+                  onTap: () => _onClick(data, index),
                   child: Text(_listOfMeals(data)[index])),
             );
           },
@@ -153,19 +159,19 @@ class _HomePageSingleTabBarViewState extends State<HomePageSingleTabBarView> {
     }
     if (widget.enableButton && widget.enabled) {
       setState(() {});
-      return ElevatedButton(child: const Text('Submit'), onPressed: () => _submitChoice());
+      return ElevatedButton(child:  Text(AppLocale.submitButton.getString(context)), onPressed: () => _submitChoice());
     }
     if (!widget.enableButton && !widget.enabled) {
       setState(() {});
       return FloatingActionButton(
           backgroundColor: Colors.blue, onPressed: () => _editChoice(), child: const Icon(Icons.edit));
     }
-    return Text('Nesto');
+    return const Text(''); //
   }
 
   Text _buildText() {
     setState(() {});
-    return Text('Proslo je vreme za narucivanje');
+    return Text(AppLocale.expiredTime.getString(context));
   }
 
   @override

@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:l8_food/helpers/icon_helper.dart';
 import 'package:l8_food/widgets/appbar_widget.dart';
 
@@ -13,9 +12,9 @@ class HistoryOfOrdersScreen extends StatefulWidget {
 }
 
 class _HistoryOfOrdersScreenState extends State<HistoryOfOrdersScreen> {
-  final user = FirebaseAuth.instance.currentUser!;
-  List<String> allMeals = [];
-  List<String> allDates = [];
+  final _user = FirebaseAuth.instance.currentUser!;
+  final List<String> _allMeals = [];
+  final List<String> _allDates = [];
 
   @override
   void initState() {
@@ -24,18 +23,24 @@ class _HistoryOfOrdersScreenState extends State<HistoryOfOrdersScreen> {
   }
 
   Future<void> _getMeals() async {
-    await FirebaseFirestore.instance.collection('orders').where('userId', isEqualTo: user.uid).get().then(
+    //TODO u posebnu klasu, ne koristi then nego await
+    await FirebaseFirestore.instance.collection('orders').where('userId', isEqualTo: _user.uid).get().then(
       (querySnapshot) {
         for (var docSnapshot in querySnapshot.docs) {
-          allMeals.add('${docSnapshot.data().values.last}');
-          allDates.add(docSnapshot.data().values.first);
-          print(docSnapshot.data().values.first);
+          _allMeals.add('${docSnapshot.data().values.last}');
+          _allDates.add(docSnapshot.data().values.first);
         }
       },
     );
 
-    setState(() {
-    });
+    setState(() {});
+  }
+
+  ListTile _buildListTile(index) {
+    return ListTile(
+      title: Text(_allDates[index]),
+      subtitle: Text(_allMeals[index]),
+    );
   }
 
   @override
@@ -46,7 +51,7 @@ class _HistoryOfOrdersScreenState extends State<HistoryOfOrdersScreen> {
           preferredSize: const Size.fromHeight(60),
           child: AppBarWidget(
             iconButton: IconButton(
-              icon: Icon(IconHelper.appbarbackIcon),
+              icon: Icon(IconHelper.appBarBackIcon),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ),
@@ -56,13 +61,8 @@ class _HistoryOfOrdersScreenState extends State<HistoryOfOrdersScreen> {
             SizedBox(
               height: 300,
               child: ListView.builder(
-                itemCount: allMeals.length,
-                itemBuilder: (context, int index) {
-                  return ListTile(
-                    title: Text(allDates[index]),
-                    subtitle: Text(allMeals[index]),
-                  );
-                },
+                itemCount: _allMeals.length,
+                itemBuilder: (context, int index) => _buildListTile(index),
               ),
             ),
           ],

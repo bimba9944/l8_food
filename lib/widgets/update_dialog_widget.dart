@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localization/flutter_localization.dart';
 import 'package:l8_food/helpers/color_helper.dart';
+import 'package:l8_food/helpers/language_helper.dart';
 
 class UpdateDialogWidget extends StatefulWidget {
   const UpdateDialogWidget({super.key, required this.onPressed, required this.controller, required this.oldValue});
@@ -18,9 +20,9 @@ class _UpdateDialogWidgetState extends State<UpdateDialogWidget> {
     widget.controller.text = widget.oldValue;
     super.initState();
   }
-  Widget _buildSingleInputField(String hintTxt, TextEditingController controler) {
+  Widget _buildSingleInputField(String hintTxt, TextEditingController controller) {
     return TextFormField(
-      controller: controler,
+      controller: controller,
       decoration: InputDecoration(
         border: OutlineInputBorder(borderSide: BorderSide(color: ColorHelper.listTileBorder)),
         hintText: hintTxt,
@@ -40,7 +42,7 @@ class _UpdateDialogWidgetState extends State<UpdateDialogWidget> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildSingleInputField('Promenite jelo', widget.controller),
+            _buildSingleInputField(AppLocale.changeMealDialog.getString(context), widget.controller),
             const SizedBox(height: 10),
           ],
         ),
@@ -52,12 +54,12 @@ class _UpdateDialogWidgetState extends State<UpdateDialogWidget> {
             ElevatedButton(
               onPressed: () => _update(),
               style: ElevatedButton.styleFrom(primary: ColorHelper.updateMealUpdate),
-              child: Text('Update', style: TextStyle(color: ColorHelper.textColorWhite)),
+              child: Text(AppLocale.updateButton.getString(context), style: TextStyle(color: ColorHelper.textColorWhite)),
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
               style: ElevatedButton.styleFrom(primary: ColorHelper.updateMealCancel),
-              child: Text('Cancel', style: TextStyle(color: ColorHelper.textColorWhite)),
+              child: Text(AppLocale.cancelButton.getString(context), style: TextStyle(color: ColorHelper.textColorWhite)),
             ),
           ],
         )

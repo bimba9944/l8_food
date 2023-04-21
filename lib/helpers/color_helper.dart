@@ -7,7 +7,7 @@ class ColorHelper{
   static Color l8ImageColorWhite = Colors.white;
   static Color deleteMealButtonYes = Colors.blue;
   static Color deleteMealButtonNo = Colors.red;
-  static Color signinBackground = Colors.black87;
+  static Color signInBackground = Colors.black87;
   static Color l8ImageColorBlue = Colors.blue;
   static Color signInButtonBackground = Colors.blue;
   static Color signInButtonText = Colors.white;

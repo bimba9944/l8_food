@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localization/flutter_localization.dart';
 import 'package:intl/intl.dart';
 import 'package:l8_food/helpers/icon_helper.dart';
+import 'package:l8_food/helpers/language_helper.dart';
 import 'package:l8_food/widgets/appbar_widget.dart';
 import 'dart:io';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
@@ -17,12 +18,13 @@ class HistoryOfAllOrdersScreen extends StatefulWidget {
 }
 
 class _HistoryOfAllOrdersScreenState extends State<HistoryOfAllOrdersScreen> {
-  final user = FirebaseAuth.instance.currentUser!;
-  List<String> allMeals = [];
-  List<String> allDates = [];
-  List<String> allEmails = [];
+  final List<String> _allMeals = [];
+  final List<String> _allDates = [];
+  final List<String> _allEmails = [];
   late String firstDate;
   late String lastDate;
+  final String pdfName = '/Output.pdf';
+  final String dateFormatString = 'EEEE';
 
   @override
   void initState() {
@@ -33,6 +35,7 @@ class _HistoryOfAllOrdersScreenState extends State<HistoryOfAllOrdersScreen> {
   Future<void> _getMeals() async {
     firstDate = _convertDateTime().first;
     lastDate = _convertDateTime().last;
+    //TODO ovo u servis, izbaci then, koristi await
     await FirebaseFirestore.instance
         .collection('orders')
         .where('date', whereIn: _convertDateTime())
@@ -40,9 +43,9 @@ class _HistoryOfAllOrdersScreenState extends State<HistoryOfAllOrdersScreen> {
         .then(
       (querySnapshot) {
         for (var docSnapshot in querySnapshot.docs) {
-          allMeals.add('${docSnapshot.data().values.last}');
-          allDates.add(docSnapshot.data().values.first);
-          allEmails.add(docSnapshot.data().values.elementAt(4));
+          _allMeals.add('${docSnapshot.data().values.last}');
+          _allDates.add(docSnapshot.data().values.first);
+          _allEmails.add(docSnapshot.data().values.elementAt(4));
         }
       },
     );
@@ -50,14 +53,14 @@ class _HistoryOfAllOrdersScreenState extends State<HistoryOfAllOrdersScreen> {
   }
 
   List<String> _convertDateTime() {
-    List<String> dayss = [];
-    for (var day in generateDate(5)) {
-      dayss.add('${DateFormat('EEEE').format(day)}' + ',' + '${day.day}.${day.month}.${day.year}');
+    List<String> days = [];
+    for (var day in _generateDate(5)) {
+      days.add('${DateFormat(dateFormatString).format(day)},${day.day}.${day.month}.${day.year}');
     }
-    return dayss;
+    return days;
   }
 
-  List<DateTime> generateDate(int count) {
+  List<DateTime> _generateDate(int count) {
     int weekends = 0;
     return List.generate(
       count,
@@ -76,12 +79,8 @@ class _HistoryOfAllOrdersScreenState extends State<HistoryOfAllOrdersScreen> {
 
   String _buildString(){
     var str = '';
-    for(var i in allMeals){
-      for(var i1 in allDates){
-        for(var i2 in allEmails){
-          str = '\n$str\n$i\n$i1\n$i2\n';
-        }
-      }
+    for(int i = 0;i < _allEmails.length; i++){
+          str = '$str\n${_allEmails[i]}\n${_allDates[i]}\n${_allMeals[i]}';
     }
     return str;
   }
@@ -89,30 +88,26 @@ class _HistoryOfAllOrdersScreenState extends State<HistoryOfAllOrdersScreen> {
   Future<void> _createPDF() async {
     PdfDocument document = PdfDocument();
     document.pages.add().graphics.drawString(_buildString(), PdfStandardFont(PdfFontFamily.helvetica, 12),format: PdfStringFormat(alignment: PdfTextAlignment.center),
-        brush: PdfSolidBrush(PdfColor(0, 0, 0)), bounds: const Rect.fromLTWH(170, 100, 0, 0));
+        brush: PdfSolidBrush(PdfColor(0, 0, 0)), bounds: const Rect.fromLTWH(100, 0, 0, 0));
     List<int> bytes = await document.save();
     document.dispose();
     final directory = await getApplicationDocumentsDirectory();
     final path = directory.path;
-    File file = File('$path/Output.pdf');
+    File file = File('$path$pdfName');
     await file.writeAsBytes(bytes, flush: true);
-    OpenFile.open('$path/Output.pdf');
+    OpenFile.open('$path$pdfName');
   }
 
-  // Future<void> _pdf() async{
-  //   final pdfFile = await PdfApi.generateCenteredText(_list());
-  //   PdfApi.openFile(pdfFile);
-  // }
 
   ListView _buildListView(){
     return ListView.builder(
-      itemCount: allMeals.length,
+      itemCount: _allMeals.length,
       itemBuilder: (context, int index) {
         return ListTile(
           title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [Text(allEmails[index]), Text(allDates[index])]),
-          subtitle: Text(allMeals[index]),
+              children: [Text(_allEmails[index]), Text(_allDates[index])]),
+          subtitle: Text(_allMeals[index]),
         );
       },
     );
@@ -128,7 +123,7 @@ class _HistoryOfAllOrdersScreenState extends State<HistoryOfAllOrdersScreen> {
           preferredSize: const Size.fromHeight(60),
           child: AppBarWidget(
             iconButton: IconButton(
-              icon: Icon(IconHelper.appbarbackIcon),
+              icon: Icon(IconHelper.appBarBackIcon),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ),
@@ -141,7 +136,7 @@ class _HistoryOfAllOrdersScreenState extends State<HistoryOfAllOrdersScreen> {
                 child: _buildListView(),
               ),
             ),
-            ElevatedButton(onPressed: _createPDF, child: const Text('Export in PDF')),
+            ElevatedButton(onPressed: _createPDF, child: Text(AppLocale.exportPdfButton.getString(context))),
           ],
         ),
       ),

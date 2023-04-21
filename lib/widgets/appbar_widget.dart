@@ -7,8 +7,7 @@ class AppBarWidget extends StatelessWidget {
   final IconButton? iconButton;
   final TabBar? tabBar;
 
-  @override
-  Widget build(BuildContext context) {
+  PreferredSizeWidget _buildAppBar(){
     return AppBar(
       title: Image.asset(
         ImageHelper.appbarImage,
@@ -19,5 +18,10 @@ class AppBarWidget extends StatelessWidget {
       leading: iconButton,
       bottom: tabBar,
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _buildAppBar();
   }
 }

@@ -1,9 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localization/flutter_localization.dart';
+import 'package:l8_food/helpers/app_routes.dart';
 import 'package:l8_food/helpers/color_helper.dart';
 import 'package:l8_food/helpers/google_signin.dart';
 import 'package:l8_food/helpers/icon_helper.dart';
+import 'package:l8_food/helpers/language_helper.dart';
 import 'package:provider/provider.dart';
 
 class AdminDrawerWidget extends StatefulWidget {
@@ -14,16 +17,16 @@ class AdminDrawerWidget extends StatefulWidget {
 }
 
 class _AdminDrawerWidgetState extends State<AdminDrawerWidget> {
-  final user = FirebaseAuth.instance.currentUser!;
-  bool? data;
-  List<Widget> drawerBody = [];
+  final _user = FirebaseAuth.instance.currentUser!;
+  bool? _data;
+  List<Widget> _drawerBody = [];
 
-  void _navigateToNewPage(String route) {
+  void _navigateToNewPage(route) {
     Navigator.pushNamed(context, route);
   }
 
   void _logout() {
-    final provider = Provider.of<GoogleSigninProvider>(context, listen: false);
+    final provider = Provider.of<GoogleSignInProvider>(context, listen: false);
     provider.logout();
   }
 
@@ -40,11 +43,11 @@ class _AdminDrawerWidgetState extends State<AdminDrawerWidget> {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           CircleAvatar(
-            backgroundImage: NetworkImage(user.photoURL!),
+            backgroundImage: NetworkImage(_user.photoURL!),
             radius: 40,
           ),
           Text(
-            'Email: ${user.email}',
+            '${AppLocale.emailDrawerHeader.getString(context)}: ${_user.email}',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: ColorHelper.textColorWhite),
           ),
         ],
@@ -53,10 +56,11 @@ class _AdminDrawerWidgetState extends State<AdminDrawerWidget> {
   }
 
   void _checkIsUserAdmin(){
+    //TODO then izbaci i koristi servis za firebase metodu
     final FirebaseFirestore db = FirebaseFirestore.instance;
-    final ref = db.collection('users').doc(user.uid);
+    final ref = db.collection('users').doc(_user.uid);
     ref.get().then((DocumentSnapshot doc) {
-      data = doc['admin'] as bool;
+      _data = doc['admin'] as bool;
       if (mounted) {
         setState(() {});
       }
@@ -65,51 +69,51 @@ class _AdminDrawerWidgetState extends State<AdminDrawerWidget> {
 
   List<Widget> _buildDrawerBody() {
     _checkIsUserAdmin();
-    if (data == true) {
-      drawerBody = _buildUserDrawer();
-    } else if (data == false) {
-      drawerBody = _buildAdminDrawerBody();
+    if (_data == true) {
+      _drawerBody = _buildUserDrawer();
+    } else if (_data == false) {
+      _drawerBody = _buildAdminDrawerBody();
     }
-    return drawerBody;
+    return _drawerBody;
   }
 
   List<Widget> _buildAdminDrawerBody() {
     return [
       ListTile(
         leading: Icon(IconHelper.historyOfOrders),
-        title: const Text('Istorija porudzbina'),
-        onTap: () => _navigateToNewPage('/HistoryOfOrdersScreen'),
+        title:  Text(AppLocale.drawerHistoryOfOrders.getString(context)),
+        onTap: () => _navigateToNewPage(AppRoutes.historyOfOrders),
       ),
       const Divider(
         thickness: 1,
       ),
       ListTile(
         leading: Icon(IconHelper.listAllOrders),
-        onTap: () => _navigateToNewPage('/HistoryOfAllOrdersScreen'),
-        title: const Text('Predgled svih porudzbina'),
+        onTap: () => _navigateToNewPage(AppRoutes.historyOfAllOrders),
+        title:  Text(AppLocale.drawerAllOrders.getString(context)),
       ),
       const Divider(
         thickness: 1,
       ),
       ListTile(
         leading: Icon(IconHelper.addMeal),
-        onTap: () => _navigateToNewPage('/AddFoodScreen'),
-        title: const Text('Dodavanje u jelovnik'),
+        onTap: () => _navigateToNewPage(AppRoutes.addFood),
+        title:  Text(AppLocale.drawerAddFood.getString(context)),
       ),
       const Divider(
         thickness: 1,
       ),
       ListTile(
         leading: Icon(IconHelper.updateMeal),
-        onTap: () => _navigateToNewPage('/UpdateFoodScreen'),
-        title: const Text('Izmena jelovnika'),
+        onTap: () => _navigateToNewPage(AppRoutes.updateFood),
+        title:  Text(AppLocale.drawerUpdateFood.getString(context)),
       ),
       const Divider(
         thickness: 1,
       ),
       ListTile(
         leading: Icon(IconHelper.logout),
-        title: const Text('Logout'),
+        title:  Text(AppLocale.logout.getString(context)),
         onTap: () => _logout(),
       ),
     ];
@@ -119,15 +123,15 @@ class _AdminDrawerWidgetState extends State<AdminDrawerWidget> {
     return [
       ListTile(
         leading: Icon(IconHelper.historyOfOrders),
-        title: const Text('Istorija porudzbina'),
-        onTap: () => _navigateToNewPage('/HistoryOfOrdersScreen'),
+        title: Text(AppLocale.drawerHistoryOfOrders.getString(context)),
+        onTap: () => _navigateToNewPage(AppRoutes.historyOfOrders),
       ),
       const Divider(
         thickness: 1,
       ),
       ListTile(
         leading: Icon(IconHelper.logout),
-        title: const Text('Logout'),
+        title:  Text(AppLocale.logout.getString(context)),
         onTap: () => _logout(),
       ),
     ];

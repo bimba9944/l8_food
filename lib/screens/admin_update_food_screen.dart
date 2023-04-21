@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localization/flutter_localization.dart';
 import 'package:l8_food/helpers/color_helper.dart';
 import 'package:l8_food/helpers/icon_helper.dart';
+import 'package:l8_food/helpers/language_helper.dart';
 import 'package:l8_food/helpers/snackBarHelper.dart';
 import 'package:l8_food/models/dropdown_items_model.dart';
 import 'package:l8_food/widgets/delete_dialog_widget.dart';
@@ -17,36 +19,46 @@ class AdminUpdateFoodScreen extends StatefulWidget {
 }
 
 class _AdminUpdateFoodScreenState extends State<AdminUpdateFoodScreen> {
-  TextEditingController titleController = TextEditingController();
+  final TextEditingController _titleController = TextEditingController();
 
-  String dropdownValue = DropdownItemsModel.list.first;
-  List<String> data = [];
+  String _dropdownValue = DropdownItemsModel.list.first;
+  List<String> _data = [];
+
+  @override
+  void initState() {
+    getAllMeals();
+    super.initState();
+  }
 
   void _ifCanGetAllMeals(DocumentSnapshot doc) {
-    data = List.from(doc['hrana']);
+    _data = List.from(doc['hrana']); //TODO izdvoj ovo hrana
     setState(() {
-      data;
+      _data;
     });
   }
 
   void _cantGetAllMeals(error) {
     setState(() {
-      data = [];
+      _data = [];
       _buildMenu();
     });
-    SnackBarHelper.buildSnackBar('Ne postoji ni jedno jelo za izabrani dan', context);
+    SnackBarHelper.buildSnackBar(AppLocale.emptyMealsMessage.getString(context), context);
   }
 
   void getAllMeals() {
-    final docRef = FirebaseFirestore.instance.collection("days").doc(dropdownValue);
-    docRef.get().then(_ifCanGetAllMeals).catchError(_cantGetAllMeals);
+    final docRef = FirebaseFirestore.instance
+        .collection("days")
+        .doc(_dropdownValue); //TODO ista prica kao u google_signin.dart prebaci ovo u poseban servis
+    docRef.get().then(_ifCanGetAllMeals).catchError(
+        _cantGetAllMeals); //TODO ne koristi then nego await, ovo catchError mozes da stavis u try i catch i u catch delun da pozoves _cantGetAllMeals
   }
 
   void _onUpdate(String controler, String oldValue) async {
-    await FirebaseFirestore.instance.collection('days').doc(dropdownValue).update({
+    //TODO sve ove firebase metode za update add delete sta vec, treba da budu u posebnom servisu, ako je moguce npr imas jednu update metodu koja je genericka i samo joj prosledjujes argumente odavde
+    await FirebaseFirestore.instance.collection('days').doc(_dropdownValue).update({
       'hrana': FieldValue.arrayRemove([oldValue])
     });
-    await FirebaseFirestore.instance.collection('days').doc(dropdownValue).update(
+    await FirebaseFirestore.instance.collection('days').doc(_dropdownValue).update(
       {
         'hrana': FieldValue.arrayUnion([controler])
       },
@@ -59,19 +71,22 @@ class _AdminUpdateFoodScreenState extends State<AdminUpdateFoodScreen> {
     }
   }
 
-  void _ifCanDelete(value) {
+  void _foodIsDeleted(value) {
     Navigator.of(context).pop();
-    setState(() {
-      getAllMeals();
-    });
+    if(mounted){
+      setState(() {
+        getAllMeals();
+      });
+    }
   }
 
   void _onDelete(String oldValue) {
-    FirebaseFirestore.instance.collection('days').doc(dropdownValue).update(
+    //TODO opet :D svuda gde koristis firebase metode stavih ih u jedan servis i napravi da update, delete, insert metode budu genericke da mogu da prihvate bilo sta
+    FirebaseFirestore.instance.collection('days').doc(_dropdownValue).update(
       {
         'hrana': FieldValue.arrayRemove([oldValue])
       },
-    ).then(_ifCanDelete);
+    ).then(_foodIsDeleted); //TODO ne koristi then nego await
   }
 
   Future<String?> _showDialogForUpdate(item) {
@@ -79,7 +94,7 @@ class _AdminUpdateFoodScreenState extends State<AdminUpdateFoodScreen> {
       context: context,
       builder: (BuildContext context) => UpdateDialogWidget(
         onPressed: _onUpdate,
-        controller: titleController,
+        controller: _titleController,
         oldValue: item.toString(),
       ),
     );
@@ -97,40 +112,38 @@ class _AdminUpdateFoodScreenState extends State<AdminUpdateFoodScreen> {
 
   List<Widget> _buildMenu() {
     List<Widget> items = [];
-    for (var item in data) {
-      items.add(Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Card(
-          shape: RoundedRectangleBorder(
+    for (var item in _data) {
+      items.add(
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Card(
+            shape: RoundedRectangleBorder(
               borderRadius: const BorderRadius.all(Radius.circular(15)),
-              side: BorderSide(color: ColorHelper.listTileBorder)),
-          elevation: 10,
-          child: ListTile(
-            contentPadding: const EdgeInsets.all(6),
-            title: Text(item.toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(onPressed: () => _showDialogForUpdate(item), icon: Icon(IconHelper.updateMeal)),
-                IconButton(onPressed: () => _showDialogForDelete(item), icon: Icon(IconHelper.deleteMeal))
-              ],
+              side: BorderSide(color: ColorHelper.listTileBorder),
+            ),
+            elevation: 10,
+            child: ListTile(
+              contentPadding: const EdgeInsets.all(6),
+              title: Text(item.toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(onPressed: () => _showDialogForUpdate(item), icon: Icon(IconHelper.updateMeal)),
+                  IconButton(onPressed: () => _showDialogForDelete(item), icon: Icon(IconHelper.deleteMeal))
+                ],
+              ),
             ),
           ),
         ),
-      ));
+      );
     }
     return items;
   }
 
-  @override
-  void initState() {
-    getAllMeals();
-    super.initState();
-  }
 
   void _onChangeDropdown(String? value) {
     setState(() {
-      dropdownValue = value!;
+      _dropdownValue = value!;
     });
     getAllMeals();
   }
@@ -143,7 +156,7 @@ class _AdminUpdateFoodScreenState extends State<AdminUpdateFoodScreen> {
           preferredSize: const Size.fromHeight(60),
           child: AppBarWidget(
             iconButton: IconButton(
-              icon: Icon(IconHelper.appbarbackIcon),
+              icon: Icon(IconHelper.appBarBackIcon),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ),
@@ -155,7 +168,7 @@ class _AdminUpdateFoodScreenState extends State<AdminUpdateFoodScreen> {
               const SizedBox(height: 60),
               DropdownButtonWidget(
                 list: DropdownItemsModel.list,
-                dropdownValue: dropdownValue,
+                dropdownValue: _dropdownValue,
                 getData: getAllMeals,
                 onChanged: _onChangeDropdown,
               ),
