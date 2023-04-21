@@ -120,7 +120,7 @@ class _AdminDrawerWidgetState extends State<AdminDrawerWidget> {
       ListTile(
         leading: Icon(IconHelper.historyOfOrders),
         title: const Text('Istorija porudzbina'),
-        onTap: () {},
+        onTap: () => _navigateToNewPage('/HistoryOfOrdersScreen'),
       ),
       const Divider(
         thickness: 1,
