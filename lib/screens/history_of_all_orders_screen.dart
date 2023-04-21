@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:l8_food/helpers/icon_helper.dart';
-import 'package:l8_food/helpers/pdf_api.dart';
 import 'package:l8_food/widgets/appbar_widget.dart';
 import 'dart:io';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
@@ -80,7 +79,7 @@ class _HistoryOfAllOrdersScreenState extends State<HistoryOfAllOrdersScreen> {
     for(var i in allMeals){
       for(var i1 in allDates){
         for(var i2 in allEmails){
-          str = str + i.toString() + i1.toString() + i2.toString();
+          str = '\n$str\n$i\n$i1\n$i2\n';
         }
       }
     }
@@ -89,8 +88,8 @@ class _HistoryOfAllOrdersScreenState extends State<HistoryOfAllOrdersScreen> {
 
   Future<void> _createPDF() async {
     PdfDocument document = PdfDocument();
-    document.pages.add().graphics.drawString(_buildString(), PdfStandardFont(PdfFontFamily.helvetica, 20),
-        brush: PdfSolidBrush(PdfColor(0, 0, 0)), bounds: const Rect.fromLTWH(0, 0, 500, 50));
+    document.pages.add().graphics.drawString(_buildString(), PdfStandardFont(PdfFontFamily.helvetica, 12),format: PdfStringFormat(alignment: PdfTextAlignment.center),
+        brush: PdfSolidBrush(PdfColor(0, 0, 0)), bounds: const Rect.fromLTWH(170, 100, 0, 0));
     List<int> bytes = await document.save();
     document.dispose();
     final directory = await getApplicationDocumentsDirectory();
