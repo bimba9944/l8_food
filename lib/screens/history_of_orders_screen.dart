@@ -1,8 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:l8_food/helpers/icon_helper.dart';
+import 'package:l8_food/models/food_model.dart';
 import 'package:l8_food/widgets/appbar_widget.dart';
+
+import '../helpers/food_service.dart';
 
 class HistoryOfOrdersScreen extends StatefulWidget {
   const HistoryOfOrdersScreen({Key? key}) : super(key: key);
@@ -12,29 +13,24 @@ class HistoryOfOrdersScreen extends StatefulWidget {
 }
 
 class _HistoryOfOrdersScreenState extends State<HistoryOfOrdersScreen> {
-  final _user = FirebaseAuth.instance.currentUser!;
   final List<String> _allMeals = [];
   final List<String> _allDates = [];
 
   @override
   void initState() {
-    _getMeals();
+    FoodService.instance.setupHistoryOfOrdersStream();
+    FoodService.instance.historyOfOrdersStream.listen(_getHistoryOfOrders);
     super.initState();
   }
 
-  Future<void> _getMeals() async {
-    //TODO u posebnu klasu, ne koristi then nego await
-    await FirebaseFirestore.instance.collection('orders').where('userId', isEqualTo: _user.uid).get().then(
-      (querySnapshot) {
-        for (var docSnapshot in querySnapshot.docs) {
-          _allMeals.add('${docSnapshot.data().values.last}');
-          _allDates.add(docSnapshot.data().values.first);
-        }
-      },
-    );
-
+  void _getHistoryOfOrders(List<FoodModel> orders) {
+    for (var order in orders) {
+      _allMeals.add(order.defVal);
+      _allDates.add(order.date);
+    }
     setState(() {});
   }
+
 
   ListTile _buildListTile(index) {
     return ListTile(

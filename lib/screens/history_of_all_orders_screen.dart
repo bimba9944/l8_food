@@ -1,9 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localization/flutter_localization.dart';
-import 'package:intl/intl.dart';
+import 'package:l8_food/helpers/food_service.dart';
 import 'package:l8_food/helpers/icon_helper.dart';
 import 'package:l8_food/helpers/language_helper.dart';
+import 'package:l8_food/models/food_model.dart';
 import 'package:l8_food/widgets/appbar_widget.dart';
 import 'dart:io';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
@@ -21,60 +21,22 @@ class _HistoryOfAllOrdersScreenState extends State<HistoryOfAllOrdersScreen> {
   final List<String> _allMeals = [];
   final List<String> _allDates = [];
   final List<String> _allEmails = [];
-  late String firstDate;
-  late String lastDate;
   final String pdfName = '/Output.pdf';
-  final String dateFormatString = 'EEEE';
 
   @override
   void initState() {
-    _getMeals();
+    FoodService.instance.setupHistoryOfAllOrdersStream();
+    FoodService.instance.historyOfAllOrdersStream.listen(_getHistoryOfAllOrders);
     super.initState();
   }
 
-  Future<void> _getMeals() async {
-    firstDate = _convertDateTime().first;
-    lastDate = _convertDateTime().last;
-    //TODO ovo u servis, izbaci then, koristi await
-    await FirebaseFirestore.instance
-        .collection('orders')
-        .where('date', whereIn: _convertDateTime())
-        .get()
-        .then(
-      (querySnapshot) {
-        for (var docSnapshot in querySnapshot.docs) {
-          _allMeals.add('${docSnapshot.data().values.last}');
-          _allDates.add(docSnapshot.data().values.first);
-          _allEmails.add(docSnapshot.data().values.elementAt(4));
-        }
-      },
-    );
-    setState(() {});
-  }
-
-  List<String> _convertDateTime() {
-    List<String> days = [];
-    for (var day in _generateDate(5)) {
-      days.add('${DateFormat(dateFormatString).format(day)},${day.day}.${day.month}.${day.year}');
+  void _getHistoryOfAllOrders(List<FoodModel> orders) {
+    for (var order in orders) {
+      _allMeals.add(order.defVal);
+      _allDates.add(order.date);
+      _allEmails.add(order.email);
     }
-    return days;
-  }
-
-  List<DateTime> _generateDate(int count) {
-    int weekends = 0;
-    return List.generate(
-      count,
-      (index) {
-        DateTime tempDate =
-            DateTime.now().subtract(Duration(days: DateTime.now().weekday)).add(Duration(days: index + weekends));
-        if (tempDate.weekday > 5) {
-          int offset = 7 - tempDate.weekday + 1;
-          tempDate = tempDate.add(Duration(days: offset));
-          weekends += offset;
-        }
-        return tempDate;
-      },
-    );
+    setState(() {});
   }
 
   String _buildString(){
@@ -112,8 +74,6 @@ class _HistoryOfAllOrdersScreenState extends State<HistoryOfAllOrdersScreen> {
       },
     );
   }
-
-
 
   @override
   Widget build(BuildContext context) {

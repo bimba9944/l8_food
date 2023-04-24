@@ -23,6 +23,7 @@ class _AdminUpdateFoodScreenState extends State<AdminUpdateFoodScreen> {
 
   String _dropdownValue = DropdownItemsModel.list.first;
   List<String> _data = [];
+  List<String> data1 =[];
 
   @override
   void initState() {

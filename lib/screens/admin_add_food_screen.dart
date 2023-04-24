@@ -4,6 +4,7 @@ import 'package:flutter_localization/flutter_localization.dart';
 import 'package:l8_food/helpers/color_helper.dart';
 import 'package:l8_food/helpers/icon_helper.dart';
 import 'package:l8_food/helpers/language_helper.dart';
+import 'package:l8_food/helpers/meals_service.dart';
 import 'package:l8_food/helpers/snackBarHelper.dart';
 import 'package:l8_food/models/dropdown_items_model.dart';
 import 'package:l8_food/widgets/appbar_widget.dart';
@@ -41,10 +42,7 @@ class _AdminAddFoodScreenState extends State<AdminAddFoodScreen> {
   }
 
   Future<void> _addMeal() async {
-    //TODO ovo isto u poseban service, ista prica kao za google_signing.dart komentar
-    FirebaseFirestore.instance.collection('days').doc(_dropdownValue).set({
-      'hrana': FieldValue.arrayUnion([_controller.text]),
-    }, SetOptions(merge: true));
+    MealsService.instance.setupMealsStream(_dropdownValue, {'hrana': FieldValue.arrayUnion([_controller.text])}, 'days');
     await (_buildNotification(
         AppLocale.successfullyUpdatedMeal.getString(context)));
   }
