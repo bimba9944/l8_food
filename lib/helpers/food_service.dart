@@ -11,8 +11,10 @@ class FoodService {
   StreamSubscription? _foodSubscription;
   List<FoodModel> _historyOfOrders = [];
   List<FoodModel> _historyOfAllOrders = [];
+  List<FoodModel> _orders = [];
   final StreamController<List<FoodModel>> _historyOfOrdersController = BehaviorSubject();
   final StreamController<List<FoodModel>> _historyOfAllOrdersController = BehaviorSubject();
+  final StreamController<List<FoodModel>> _ordersController = BehaviorSubject();
   final _user = FirebaseAuth.instance.currentUser!;
   final String dateFormatString = 'EEEE';
 
@@ -26,6 +28,10 @@ class FoodService {
   }
   Stream<List<FoodModel>> get historyOfAllOrdersStream {
     return _historyOfAllOrdersController.stream;
+  }
+
+  Stream<List<FoodModel>> get ordersStream {
+    return _ordersController.stream;
   }
 
   void clearFoodStream() {
@@ -89,6 +95,23 @@ class FoodService {
         _historyOfAllOrders.add(FoodModel.fromDocument(document: document));
       }
       _historyOfAllOrdersController.add(_historyOfAllOrders.map((e) => e.clone()).toList());
+    });
+  }
+
+  void setupOrdersStream(controller) {
+    _foodSubscription ??= FirestoreManager.instance
+        .getCollectionStream(
+      collectionPath: "orders",
+      queryBuilder: (CollectionReference<Map<String, dynamic>> collection) {
+        return collection.where('userId', isEqualTo: _user.uid).where('indexOfDay',isEqualTo: controller).where('date',isEqualTo: _convertDateTime()[controller]);
+      },
+    )
+        .listen((dynamic event) {
+      _orders = [];
+      for (var document in event.docs) {
+        _orders.add(FoodModel.fromDocument(document: document));
+      }
+      _ordersController.add(_orders.map((e) => e.clone()).toList());
     });
   }
 }

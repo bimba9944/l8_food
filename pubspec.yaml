@@ -43,6 +43,7 @@ dependencies:
   pdf: ^3.1.0
   flutter_localization: ^0.1.10
   rxdart: ^0.27.7
+  json_serializable: ^6.5.4
 
 
 

@@ -1,5 +1,3 @@
-
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FirestoreManager {
@@ -20,10 +18,28 @@ class FirestoreManager {
     return collectionPath;
   }
 
+  String _getDocPath(String docPath){
+    return docPath;
+  }
+
   Stream getCollectionStream({required String collectionPath, Function? queryBuilder}) {
     Stream stream;
     String fullPath = _getFullPath(collectionPath);
     CollectionReference<Map<String, dynamic>> collection = instance.firebaseStore.collection(fullPath);
+    if (queryBuilder != null) {
+      Query query = queryBuilder(collection);
+      stream = query.snapshots();
+    } else {
+      stream = collection.snapshots();
+    }
+    return stream;
+  }
+
+  Stream getDocumentStream({required String collectionPath, Function? queryBuilder,required String docPath}) {
+    Stream stream;
+    String fullPath = _getFullPath(collectionPath);
+    String documentPath = _getDocPath(docPath);
+    DocumentReference<Map<String, dynamic>> collection = instance.firebaseStore.collection(fullPath).doc(documentPath);
     if (queryBuilder != null) {
       Query query = queryBuilder(collection);
       stream = query.snapshots();

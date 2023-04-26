@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:intl/intl.dart';
 import 'package:l8_food/helpers/firestore_manager.dart';
-import 'package:l8_food/models/food_model.dart';
 import 'package:l8_food/models/meals_model.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -29,12 +27,27 @@ class MealsService {
     _mealsSubscription = null;
   }
 
-  void setupMealsStream(String docName,dynamic item,String collectionPath) {
-   FirestoreManager.instance
-        .addNewDocumentItem(
+  void setupMealsStream(String docName, dynamic item, String collectionPath) {
+    FirestoreManager.instance.addNewDocumentItem(
       docName: docName,
       item: item,
       collectionPath: collectionPath,
     );
+  }
+
+  void setupUpdateFoodStream(String dropdownValue) {
+    _mealsSubscription ??= FirestoreManager.instance
+        .getDocumentStream(
+      collectionPath: "days",
+      docPath: dropdownValue,
+    )
+        .listen((dynamic event) {
+      _meals = [];
+      print(event);
+      for (var document in event) {
+        _meals.add(MealsModel.fromDocument(document: document));
+      }
+      _mealsController.add(_meals.map((e) => e.clone()).toList());
+    });
   }
 }

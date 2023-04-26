@@ -4,8 +4,10 @@ import 'package:flutter_localization/flutter_localization.dart';
 import 'package:l8_food/helpers/color_helper.dart';
 import 'package:l8_food/helpers/icon_helper.dart';
 import 'package:l8_food/helpers/language_helper.dart';
+import 'package:l8_food/helpers/meals_service.dart';
 import 'package:l8_food/helpers/snackBarHelper.dart';
 import 'package:l8_food/models/dropdown_items_model.dart';
+import 'package:l8_food/models/meals_model.dart';
 import 'package:l8_food/widgets/delete_dialog_widget.dart';
 import 'package:l8_food/widgets/dropdown_button.dart';
 import 'package:l8_food/widgets/update_dialog_widget.dart';
@@ -31,8 +33,11 @@ class _AdminUpdateFoodScreenState extends State<AdminUpdateFoodScreen> {
     super.initState();
   }
 
-  void _ifCanGetAllMeals(DocumentSnapshot doc) {
-    _data = List.from(doc['hrana']); //TODO izdvoj ovo hrana
+  void _ifCanGetAllMeals(List<MealsModel> meals) {
+    for(var meal in meals){
+      _data = List.from(meal.hrana);
+      print(_data);
+    }
     setState(() {
       _data;
     });
@@ -46,12 +51,14 @@ class _AdminUpdateFoodScreenState extends State<AdminUpdateFoodScreen> {
     SnackBarHelper.buildSnackBar(AppLocale.emptyMealsMessage.getString(context), context);
   }
 
-  void getAllMeals() {
-    final docRef = FirebaseFirestore.instance
-        .collection("days")
-        .doc(_dropdownValue); //TODO ista prica kao u google_signin.dart prebaci ovo u poseban servis
-    docRef.get().then(_ifCanGetAllMeals).catchError(
-        _cantGetAllMeals); //TODO ne koristi then nego await, ovo catchError mozes da stavis u try i catch i u catch delun da pozoves _cantGetAllMeals
+  void getAllMeals() async {
+    try{
+      MealsService.instance.setupUpdateFoodStream(_dropdownValue);
+      MealsService.instance.mealsStream.listen(_ifCanGetAllMeals);
+    }
+    catch(_){
+      _cantGetAllMeals;
+    }
   }
 
   void _onUpdate(String controler, String oldValue) async {

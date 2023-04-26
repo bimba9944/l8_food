@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:l8_food/helpers/icon_helper.dart';
 import 'package:l8_food/models/food_model.dart';
 import 'package:l8_food/widgets/appbar_widget.dart';
-
 import '../helpers/food_service.dart';
 
 class HistoryOfOrdersScreen extends StatefulWidget {

@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:l8_food/helpers/food_service.dart';
 import 'package:l8_food/models/dropdown_items_model.dart';
+import 'package:l8_food/models/food_model.dart';
 import 'package:l8_food/widgets/admin_drawer_widget.dart';
 import 'package:l8_food/widgets/appbar_widget.dart';
 import 'package:intl/intl.dart';
@@ -24,8 +26,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   bool _expired = true;
   late var dayOfOrder;
 
-
-
   @override
   void initState() {
     _controller = TabController(vsync: this, length: 5);
@@ -37,7 +37,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     });
     super.initState();
   }
-
 
   List<DateTime> generateDate(int count) {
     int weekends = 0;
@@ -64,25 +63,24 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
   }
 
-  void _getMealsFromDb() async {
+  void _getMealsFromDb() {
     try {
-      //TODO U poseban servis
-      QuerySnapshot<Map<String, dynamic>> value = await FirebaseFirestore.instance
-          .collection('orders')
-          .where('userId', isEqualTo: _user.uid)
-          .where('indexOfDay', isEqualTo: _controller.index).where('date',isEqualTo: _convertDateTime()[_controller.index])
-          .get();
-      _indexOfMeal = value.docs.first.data().values.elementAt(2);
-      _indexOfDay = value.docs.first.data().values.elementAt(1);
-      dayOfOrder = value.docs.first.data().values.elementAt(0);
+      FoodService.instance.setupOrdersStream(_controller.index);
+      FoodService.instance.ordersStream.listen(
+        (List<FoodModel> events) {
+            _indexOfDay = events.first.indexOfDay;
+            _indexOfMeal = events.first.index;
+            dayOfOrder = events.first.date;
+        },
+      );
+      if (_indexOfMeal != null) {
+        _enabled = false;
+        _enableButton = false;
+      }
     } catch (_) {
       _enabled = true;
       _enableButton = true;
       _indexOfMeal = null;
-    }
-    if (_indexOfMeal != null) {
-      _enabled = false;
-      _enableButton = false;
     }
     _setInitialIndex();
     setState(() {});
@@ -110,8 +108,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   List<String> _convertDateTime() {
     List<String> dayss = [];
     for (var day in generateDate(5)) {
-      dayss.add( '${DateFormat('EEEE').format(day)}'+','+'${day.day}.${day.month}.${day.year}'
-      );
+      dayss.add('${DateFormat('EEEE').format(day)},${day.day}.${day.month}.${day.year}');
     }
     return dayss;
   }
