@@ -1,9 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:l8_food/helpers/food_service.dart';
 import 'package:l8_food/models/dropdown_items_model.dart';
-import 'package:l8_food/models/food_model.dart';
 import 'package:l8_food/widgets/admin_drawer_widget.dart';
 import 'package:l8_food/widgets/appbar_widget.dart';
 import 'package:intl/intl.dart';
@@ -63,20 +61,17 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
   }
 
-  void _getMealsFromDb() {
+  Future<void> _getMealsFromDb() async {
     try {
-      FoodService.instance.setupOrdersStream(_controller.index);
-      FoodService.instance.ordersStream.listen(
-        (List<FoodModel> events) {
-            _indexOfDay = events.first.indexOfDay;
-            _indexOfMeal = events.first.index;
-            dayOfOrder = events.first.date;
-        },
-      );
-      if (_indexOfMeal != null) {
-        _enabled = false;
-        _enableButton = false;
-      }
+      //TODO U poseban servis
+      QuerySnapshot<Map<String, dynamic>> value = await FirebaseFirestore.instance
+          .collection('orders')
+          .where('userId', isEqualTo: _user.uid)
+          .where('indexOfDay', isEqualTo: _controller.index).where('date',isEqualTo: _convertDateTime()[_controller.index])
+          .get();
+      _indexOfMeal = value.docs.first.data().values.elementAt(2);
+      _indexOfDay = value.docs.first.data().values.elementAt(1);
+      dayOfOrder = value.docs.first.data().values.elementAt(0);
     } catch (_) {
       _enabled = true;
       _enableButton = true;

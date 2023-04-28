@@ -38,7 +38,7 @@ class SignInWidget extends StatelessWidget {
                 onPrimary: ColorHelper.signInButtonText,
                 minimumSize: const Size(200, 50),
               ),
-              label: Text(AppLocale.submitButton.getString(context)),
+              label: Text(AppLocale.signUpButton.getString(context)),
               onPressed: () => _login(context),
               icon: const FaIcon(FontAwesomeIcons.google),
             ),

@@ -130,7 +130,7 @@ class _HomePageSingleTabBarViewState extends State<HomePageSingleTabBarView> {
       return Text(AppLocale.errorMessage.getString(context));
     }
     if (snapshot.connectionState == ConnectionState.waiting) {
-      return CircularProgressIndicator();
+      return Container();
     }
     return TabBarView(
       physics: const NeverScrollableScrollPhysics(),
